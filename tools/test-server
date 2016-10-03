@@ -1,0 +1,21 @@
+#!/opt/local/bin/node
+
+var Vicarious = require('../index');
+
+function ConsoleLogger(tag) {
+    this.tag = tag;
+}
+
+ConsoleLogger.prototype.emergency = function (message) { console.log( "emergency: " + message ); }
+ConsoleLogger.prototype.alert     = function (message) { console.log( "alert: " + message ); }
+ConsoleLogger.prototype.critical  = function (message) { console.log( "critical: " + message ); }
+ConsoleLogger.prototype.error     = function (message) { console.log( "error: " + message ); }
+ConsoleLogger.prototype.warning   = function (message) { console.log( "warning: " + message ); }
+ConsoleLogger.prototype.notice    = function (message) { console.log( "notice: " + message ); }
+ConsoleLogger.prototype.log       = function (message) { console.log( "log: " + message ); }
+ConsoleLogger.prototype.info      = function (message) { console.log( "info: " + message ); }
+
+var logger = new ConsoleLogger( 'vicarious' );
+var server = new Vicarious( 4000, logger );
+
+server.start();
