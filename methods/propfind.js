@@ -7,7 +7,7 @@
  */
 
 var URL = require('url');
-var create_pipeline = require('pipeline').create_pipeline;
+var create_pipeline = require('../lib/pipeline').create_pipeline;
 var uuidgen = require('../lib/uuid').v4;
 var FS = require('fs');
 var spawn  = require('child_process').spawn;
