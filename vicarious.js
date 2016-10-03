@@ -64,8 +64,8 @@ Vicarious.prototype.respond = function (code, content_type, data) {
     this.end( data );
 };
 
-Vicarious.prototype.responder = require( './responses' );
-Vicarious.prototype.gather = require( './gather' );
+Vicarious.prototype.responder = require( './methods/responses' );
+Vicarious.prototype.gather = require( './methods/gather' );
 
 /** Method handlers.
  *
