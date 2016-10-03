@@ -6,7 +6,7 @@
 var URL  = require('url');
 var FS   = require('fs');
 var spawn  = require('child_process').spawn;
-var uuidgen = require('../uuid').v4;
+var uuidgen = require('../lib/uuid').v4;
 
 /** This function is called bound to the server object.
  * To get at the vicarious object, use this.vicarious.

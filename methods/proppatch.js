@@ -8,7 +8,7 @@
 var URL  = require('url');
 var spawn  = require('child_process').spawn;
 var FS   = require('fs');
-var uuidgen = require('../uuid').v4;
+var uuidgen = require('../lib/uuid').v4;
 
 module.exports = function ( request, response ) {
     var BASE = this.BASE;
