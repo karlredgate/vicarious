@@ -33,7 +33,6 @@ module.exports.output = function (data) {
 
 /**
  * this must be bound to a response object.
- *
  */
 module.exports.error = function (data) {
     this.error_chunks.push( data );

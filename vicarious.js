@@ -1,11 +1,21 @@
 
 /** @file vicarious.js
  * \brief Main object
+ *
+ * Watch for filesystem events on a dir with config files?
+ * translate config files to node?
+ * load config files - associate with hostname set.
+ *
+ * hooks = policy[hostname];
+ * stage['request']
  */
 
-var HTTP = require('http');
-var FS   = require('fs');
+var Events = require('events');
+var HTTP   = require('http');
+var FS     = require('fs');
 var spawn  = require('child_process').spawn;
+var Policy  = require('./policy');
+var Context  = require('./context');
 
 /** Vicarious base object.
  * 
@@ -13,9 +23,16 @@ var spawn  = require('child_process').spawn;
  * all of the handlers to provide the Vicarious API.
  */
 
-function Vicarious( port, logger ) {
+function Vicarious( port, logger, policy ) {
+    if ( typeof policy === 'undefined' ) {
+        throw "Type error - policy undefined";
+    }
+
     this.port = port;
+    this.policy = policy;
     this.server = HTTP.createServer();
+
+console.log( "Policy is a " + typeof policy );
 
     this.server.on( 'request',    this.handler.request );
     this.server.on( 'connection', this.handler.connection );
@@ -28,22 +45,12 @@ function Vicarious( port, logger ) {
         this.server.BASE = '/var/tmp';
     }
 
-    this.server.SHARE = '/usr/share/vicarious/collection';
-    if ( FS.existsSync('./share/vicarious/collection') ) {
-        this.server.SHARE = './share/vicarious/collection';
-    }
-
     this.server.XSLT = '/usr/share/vicarious/xslt';
     if ( FS.existsSync('./share/vicarious/xslt') ) {
         this.server.XSLT = './share/vicarious/xslt';
     }
 
-    this.server.CATRDF = 'cat-rdf-with-live-props';
-    if ( FS.existsSync('./bin/cat-rdf-with-live-props') ) {
-        this.server.CATRDF = './bin/cat-rdf-with-live-props';
-    }
-
-    this.server.TOP_SHARE = '/usr/share/vicarious';
+    this.server.SHARE = '/usr/share/vicarious';
     if ( FS.existsSync('./share/vicarious') ) {
         this.server.TOP_SHARE = './share/vicarious';
     }
@@ -90,10 +97,14 @@ Vicarious.prototype.handler.close = function () {
 };
 
 /*
+ * "this" is bound to the server object.
+ *
  * The request handler splits the URI and looks for the
  * appropriate data.
  */
 Vicarious.prototype.handler.request = function (request, response) {
+    var context = new Context( request, response );
+
     var responder = this.vicarious.responder;
     var not_implemented = responder.not_implemented.bind( response );
 
@@ -105,14 +116,28 @@ Vicarious.prototype.handler.request = function (request, response) {
     // at some point.
     response.server = this;
 
+    // 'request' phase
+    // one policy call - passes in the request object and look up
+    // policy based on host header
+
     // Set up the output gatherers for all responses
     this.vicarious.gather.prepare.call( response );
+
+    // var stage = new Events.EventEmitter();
+    // stage.on( 'request', policy.stage );
+    // stage.emit( 'request', context );
+
+    context.stage = 'request';
+    this.vicarious.policy.run( context );
+
+    // this.policy.event( 'request', context );
 
     if ( typeof method == 'undefined' ) { // Not implemented
         response.logger.notice( "unimplemented request '" + request.method + "'" );
         return not_implemented();
     }
 
+    // 'request-body' phase
     this.logger.info( 'request ' + request.method + ' ' + request.url );
     method.call( this, request, response );
 };
@@ -139,10 +164,6 @@ Vicarious.prototype.start = function () {
     var distro = "";
     function gather_output( data ) { distro += data; }
 
-    /*
-     * If we cannot run lsb_release or we are not running on an Amazon
-     * release, then assume we are on localhost.
-     */
     function get_hostname_from_metadata( code, signal ) {
         if ( code !== 0 )  return start_server();
         if ( distro.trim() !== 'AmazonAMI' ) {

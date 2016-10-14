@@ -1,6 +1,7 @@
 #!/opt/local/bin/node
 
 var Vicarious = require('../index');
+var Policy = require('../policy');
 
 function ConsoleLogger(tag) {
     this.tag = tag;
@@ -16,6 +17,6 @@ ConsoleLogger.prototype.log       = function (message) { console.log( "log: " + 
 ConsoleLogger.prototype.info      = function (message) { console.log( "info: " + message ); }
 
 var logger = new ConsoleLogger( 'vicarious' );
-var server = new Vicarious( 4000, logger );
+var server = new Vicarious( 4000, logger, new Policy() );
 
 server.start();
