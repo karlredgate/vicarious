@@ -36,6 +36,10 @@ module.exports = function ( request, response ) {
     var ok           = this.vicarious.responder.ok.bind(response);
     var not_found    = this.vicarious.responder.not_found.bind(response);
 
+    // if this is a process, then finish has args (code,signal)
+    //    code is 0 when there is no error
+    // if this is a read stream, then finish has args (err)
+    //    err is undefined when there is no error
     function finish( code, signal ) {
         if ( code === undefined ) return ok( request, '' );
         if ( code !== 0 ) {
