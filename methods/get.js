@@ -37,10 +37,12 @@ module.exports = function ( request, response ) {
     var not_found    = this.vicarious.responder.not_found.bind(response);
 
     function finish( code, signal ) {
+        if ( code === undefined ) return ok( request, '' );
         if ( code !== 0 ) {
             if ( code === 4 ) {
                 return not_found( "404 error in adding live props\n");
             }
+            console.log( "READ error: " + code );
             return not_found( "ERROR ADDING LIVE PROPS\n");
         }
         ok( request, '' );
@@ -51,17 +53,21 @@ module.exports = function ( request, response ) {
 
     this.logger.log( "GET <"+route+">" );
 
-    var pid;
-    if (new RegExp('.*/$').test(route)) {
-        // this is a collection or root
-        pid = spawn('get-route-content-with-children', [route]);
-    } else {
-        pid = spawn('get-route-content', [route]);
-    }
+//    var pid;
+//    if (new RegExp('.*/$').test(route)) {
+//        // this is a collection or root
+//        pid = spawn('get-route-content-with-children', [route]);
+//    } else {
+//        pid = spawn('get-route-content', [route]);
+//    }
 
-    pid.stdout.on('data', gather.output.bind(response));
-    pid.stderr.on('data', gather.error.bind(response));
-    pid.on('close', finish.bind(this));
+    var rs = FS.createReadStream( 'junk.html' );
+    rs.on( 'data', gather.output.bind(response));
+    rs.on( 'close', finish.bind(this) );
+
+    // pid.stdout.on('data', gather.output.bind(response));
+    // pid.stderr.on('data', gather.error.bind(response));
+    // pid.on('close', finish.bind(this));
 };
 
 /* vim: set autoindent expandtab sw=4 syntax=javascript: */
